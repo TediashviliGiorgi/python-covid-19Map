@@ -2,6 +2,12 @@
 import folium
 import requests
 from bs4 import BeautifulSoup
+import pandas
+
+def radius_gen(tcases):
+    return float(tcases) ** 0.25
+
+
 
 r = requests.get("https://www.worldometers.info/coronavirus/")
 c = r.content
@@ -18,30 +24,27 @@ for item in rows:
     d[item.find_all("td")[1].text] = tcases.replace(",","")
 print(d)
 
+country_data = pandas.read_csv("countries.csv")
+
+lat = list(country_data["latitude"])
+lon = list(country_data["longitude"])
+name = list(country_data["name"])
 
 
 
-
-
-
-
-
-
-
-
-
-'''
 map = folium.Map(location = [41.69, 81.09], zoom_level = 4, tiles = "Stamen Terrain")
 
 # init group
-group = folium.FeatureGroup(name = "My Markers")
+group = folium.FeatureGroup(name = "countries")
 
-for item in [[41.89, 81.19], [41.59, 81.29], [41.80, 81.19]]:
+for lt, ln, ne in zip(lat, lon, name):
+    if ne in d.keys():
+
 # add group to map
-    group.add_child(folium.Marker(location = item, popup = "Test Marker"))
+        group.add_child(folium.CircleMarker(location = [lt,ln], popup = str(ne) + "\n" + str(d[ne]),
+        radius = radius_gen(d[ne]), fill_color = "red", color = "black", fill_opacity = 0.7))
 
 #  put markers in map
 map.add_child(group)
 
 map.save("coronaMap.html")
-'''
